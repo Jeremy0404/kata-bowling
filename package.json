@@ -1,13 +1,13 @@
 {
-  "name": "simple-mars-rover",
+  "name": "bowling",
   "version": "1.0.0",
   "description": "A kata",
-  "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint --fix . --ext .ts",
     "test": "jest"
   },
   "author": "Jérémy Collomb-Clerc",

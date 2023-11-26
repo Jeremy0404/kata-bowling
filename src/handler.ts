@@ -1,7 +1,9 @@
-export class Handler {
-  constructor() {}
+import { Game } from './game';
 
-  execute(commands: unknown) {
-    return commands;
+export class Handler {
+  constructor(private readonly game: Game) {}
+
+  execute(turns: string) {
+    return this.game.printScore(turns);
   }
 }
