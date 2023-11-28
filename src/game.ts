@@ -9,7 +9,7 @@ export class Game {
     for (let i = 0; i < turnScores.length; i++) {
       score += this.isSpare(turnScores[i])
         ? this.calculateSpareScore(turnScores, i)
-        : this.calculateTurnScoreScore(turnScores[i]);
+        : this.calculateTurnScore(turnScores[i]);
     }
 
     return score;
@@ -32,7 +32,7 @@ export class Game {
     return spareScore;
   }
 
-  private calculateTurnScoreScore(turnScore: string): number {
+  private calculateTurnScore(turnScore: string): number {
     return turnScore
       .split('')
       .reduce((acc, val) => acc + (val === '-' ? 0 : parseInt(val)), 0);
