@@ -1,30 +1,48 @@
 export class Game {
-  constructor() {}
+  private static readonly MAX_TURN_SCORES = 10;
+  private static readonly SPARE_SCORE = 10;
 
-  printScore(resultString: string): number {
+  calculateScore(resultString: string): number {
     const turnScores = resultString.split(' ');
     let score = 0;
 
     for (let i = 0; i < turnScores.length; i++) {
-      if (turnScores[i].includes('/')) {
-        score += 10;
-        if (i + 1 < turnScores.length) {
-          const nextTurnScore = turnScores[i + 1];
-          const nextThrow =
-            nextTurnScore[0] === '-' ? 0 : parseInt(nextTurnScore[0]);
-          score += nextThrow;
-        } else if (i === 9) {
-          const extraThrow =
-            turnScores[i].length > 2 ? parseInt(turnScores[i][2]) : 0;
-          score += extraThrow;
-        }
-      } else {
-        score += turnScores[i]
-          .split('')
-          .reduce((acc, val) => acc + (val === '-' ? 0 : parseInt(val)), 0);
-      }
+      score += this.isSpare(turnScores[i])
+        ? this.calculateSpareScore(turnScores, i)
+        : this.calculateTurnScoreScore(turnScores[i]);
     }
 
     return score;
+  }
+
+  private isSpare(turnScore: string): boolean {
+    return turnScore.includes('/');
+  }
+
+  private calculateSpareScore(
+    turnScores: string[],
+    turnScoreIndex: number,
+  ): number {
+    let spareScore = Game.SPARE_SCORE;
+    if (turnScoreIndex + 1 < turnScores.length) {
+      spareScore += this.getFirstThrowScore(turnScores[turnScoreIndex + 1]);
+    } else if (turnScoreIndex === Game.MAX_TURN_SCORES - 1) {
+      spareScore += this.getExtraThrowScore(turnScores[turnScoreIndex]);
+    }
+    return spareScore;
+  }
+
+  private calculateTurnScoreScore(turnScore: string): number {
+    return turnScore
+      .split('')
+      .reduce((acc, val) => acc + (val === '-' ? 0 : parseInt(val)), 0);
+  }
+
+  private getFirstThrowScore(turnScore: string): number {
+    return turnScore[0] === '-' ? 0 : parseInt(turnScore[0]);
+  }
+
+  private getExtraThrowScore(turnScore: string): number {
+    return turnScore.length > 2 ? parseInt(turnScore[2]) : 0;
   }
 }
