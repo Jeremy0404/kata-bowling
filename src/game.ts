@@ -35,7 +35,7 @@ export class Game {
     if (turnScoreIndex + 1 < turnScores.length) {
       spareScore += this.getFirstThrowScore(turnScores[turnScoreIndex + 1]);
     } else if (turnScoreIndex === Game.MAX_TURN_SCORES - 1) {
-      spareScore += this.getExtraThrowScore(turnScores[turnScoreIndex]);
+      spareScore += this.getScoreOfNextThrows(turnScores, turnScoreIndex, 1);
     }
     return spareScore;
   }
@@ -58,15 +58,14 @@ export class Game {
     turnScores: string[],
     turnScoreIndex: number,
   ): number {
-    let strikeScore = 10;
-
-    if (turnScoreIndex >= Game.MAX_TURN_SCORES - 1) {
-      strikeScore += 30;
-    } else {
-      strikeScore += this.getScoreOfNextThrows(turnScores, turnScoreIndex, 2);
+    if (this.isLastThrow(turnScoreIndex)) {
+      return 30;
     }
+    return 10 + this.getScoreOfNextThrows(turnScores, turnScoreIndex, 2);
+  }
 
-    return strikeScore;
+  private isLastThrow(turnScoreIndex: number) {
+    return turnScoreIndex === Game.MAX_TURN_SCORES - 1;
   }
 
   private getScoreOfNextThrows(
