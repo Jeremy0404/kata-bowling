@@ -18,4 +18,12 @@ describe('Bowling Score Calculator', () => {
   it('scores a perfect game', () => {
     verify('X X X X X X X X X XXX', 300);
   });
+
+  it('scores 0 on each turn', () => {
+    verify('-- -- -- -- -- -- -- -- -- --', 0);
+  });
+
+  it('scores a realistic game', () => {
+    verify('25 X 6/ 3- 3- 3/ 3- 3- 3- 3-', 71);
+  });
 });

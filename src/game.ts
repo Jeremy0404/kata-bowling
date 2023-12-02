@@ -1,102 +1,95 @@
+const STRIKE = 'X';
+const MISS = '-';
+const SPARE = '/';
+const STRIKE_SCORE = 10;
+const SPARE_SCORE = 10;
+
 export class Game {
-  private static readonly MAX_TURN_SCORES = 10;
-  private static readonly SPARE_SCORE = 10;
+  private throwScores: number[] = [];
 
-  calculateScore(resultString: string): number {
-    const turnScores = resultString.split(' ');
+  score(result: string): number {
+    this.parse(result);
     let score = 0;
+    let turnIndex = 0;
 
-    for (let i = 0; i < turnScores.length; i++) {
-      if (this.isStrike(turnScores[i])) {
-        score += this.calculateStrikeScore(turnScores, i);
-      } else if (this.isSpare(turnScores[i])) {
-        score += this.calculateSpareScore(turnScores, i);
-      } else {
-        score += this.calculateTurnScore(turnScores[i]);
-      }
+    for (let turn = 0; turn < 10; turn++) {
+      score += this.turnScore(turnIndex);
+      turnIndex = this.nextTurnIndex(turnIndex);
     }
 
     return score;
   }
 
-  private isSpare(turnScore: string): boolean {
-    return turnScore.includes('/');
-  }
-
-  private isStrike(turnScore: string): boolean {
-    return turnScore.includes('X');
-  }
-
-  private calculateSpareScore(
-    turnScores: string[],
-    turnScoreIndex: number,
-  ): number {
-    let spareScore = Game.SPARE_SCORE;
-    if (turnScoreIndex + 1 < turnScores.length) {
-      spareScore += this.getFirstThrowScore(turnScores[turnScoreIndex + 1]);
-    } else if (turnScoreIndex === Game.MAX_TURN_SCORES - 1) {
-      spareScore += this.getScoreOfNextThrows(turnScores, turnScoreIndex, 1);
+  private turnScore(turnIndex: number): number {
+    if (this.isStrike(turnIndex)) {
+      return this.strikeScore(turnIndex);
     }
-    return spareScore;
-  }
 
-  private calculateTurnScore(turnScore: string): number {
-    return turnScore
-      .split('')
-      .reduce((acc, val) => acc + (val === '-' ? 0 : parseInt(val)), 0);
-  }
-
-  private getFirstThrowScore(turnScore: string): number {
-    return turnScore[0] === '-' ? 0 : parseInt(turnScore[0]);
-  }
-
-  private getExtraThrowScore(turnScore: string): number {
-    return turnScore.length > 2 ? parseInt(turnScore[2]) : 0;
-  }
-
-  private calculateStrikeScore(
-    turnScores: string[],
-    turnScoreIndex: number,
-  ): number {
-    if (this.isLastThrow(turnScoreIndex)) {
-      return 30;
+    if (this.isSpare(turnIndex)) {
+      return this.spareScore(turnIndex);
     }
-    return 10 + this.getScoreOfNextThrows(turnScores, turnScoreIndex, 2);
+
+    return this.normalTurnScore(turnIndex);
   }
 
-  private isLastThrow(turnScoreIndex: number) {
-    return turnScoreIndex === Game.MAX_TURN_SCORES - 1;
+  private nextTurnIndex(turnIndex: number): number {
+    return this.isStrike(turnIndex) ? turnIndex + 1 : turnIndex + 2;
   }
 
-  private getScoreOfNextThrows(
-    turnScores: string[],
-    currentIndex: number,
-    throwsCount: number,
-  ): number {
-    let score = 0;
-    let throwsRemaining = throwsCount;
+  private isStrike(turnIndex: number): boolean {
+    return this.throwScores[turnIndex] === 10;
+  }
 
-    for (
-      let i = currentIndex + 1;
-      i < turnScores.length && throwsRemaining > 0;
-      i++
-    ) {
-      if (this.isStrike(turnScores[i])) {
-        score += 10;
-        throwsRemaining--;
-      } else if (this.isSpare(turnScores[i])) {
-        score += 10;
+  private strikeScore(turnIndex: number): number {
+    return 10 + this.strikeBonus(turnIndex);
+  }
+
+  private strikeBonus(turnIndex: number): number {
+    return (
+      (this.throwScores[turnIndex + 1] || 0) +
+      (this.throwScores[turnIndex + 2] || 0)
+    );
+  }
+
+  private isSpare(turnIndex: number): boolean {
+    return this.normalTurnScore(turnIndex) === 10;
+  }
+
+  private spareScore(turnIndex: number): number {
+    return 10 + this.spareBonus(turnIndex);
+  }
+
+  private spareBonus(turnIndex: number): number {
+    return this.throwScores[turnIndex + 2] || 0;
+  }
+
+  private normalTurnScore(turnIndex: number): number {
+    return this.throwScores[turnIndex] + this.throwScores[turnIndex + 1];
+  }
+
+  private parse(result: string) {
+    result
+      .split(' ')
+      .forEach((turn) =>
+        turn.split('').forEach((roll) => this.processRollResult(roll)),
+      );
+  }
+
+  private processRollResult(result: string) {
+    switch (result) {
+      case STRIKE:
+        this.throwScores.push(STRIKE_SCORE);
         break;
-      } else {
-        const frameThrows = turnScores[i].split('');
-        for (const throwScore of frameThrows) {
-          if (throwsRemaining === 0) break;
-          score += throwScore === '-' ? 0 : parseInt(throwScore);
-          throwsRemaining--;
-        }
-      }
+      case MISS:
+        this.throwScores.push(0);
+        break;
+      case SPARE:
+        // eslint-disable-next-line no-case-declarations
+        const previousRollScore = this.throwScores[this.throwScores.length - 1];
+        this.throwScores.push(SPARE_SCORE - previousRollScore);
+        break;
+      default:
+        this.throwScores.push(parseInt(result, 10));
     }
-
-    return score;
   }
 }
