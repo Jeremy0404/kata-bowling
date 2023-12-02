@@ -7,9 +7,13 @@ export class Game {
     let score = 0;
 
     for (let i = 0; i < turnScores.length; i++) {
-      score += this.isSpare(turnScores[i])
-        ? this.calculateSpareScore(turnScores, i)
-        : this.calculateTurnScore(turnScores[i]);
+      if (this.isStrike(turnScores[i])) {
+        score += this.calculateStrikeScore(turnScores, i);
+      } else if (this.isSpare(turnScores[i])) {
+        score += this.calculateSpareScore(turnScores, i);
+      } else {
+        score += this.calculateTurnScore(turnScores[i]);
+      }
     }
 
     return score;
@@ -17,6 +21,10 @@ export class Game {
 
   private isSpare(turnScore: string): boolean {
     return turnScore.includes('/');
+  }
+
+  private isStrike(turnScore: string): boolean {
+    return turnScore.includes('X');
   }
 
   private calculateSpareScore(
@@ -44,5 +52,52 @@ export class Game {
 
   private getExtraThrowScore(turnScore: string): number {
     return turnScore.length > 2 ? parseInt(turnScore[2]) : 0;
+  }
+
+  private calculateStrikeScore(
+    turnScores: string[],
+    turnScoreIndex: number,
+  ): number {
+    let strikeScore = 10;
+
+    if (turnScoreIndex >= Game.MAX_TURN_SCORES - 1) {
+      strikeScore += 30;
+    } else {
+      strikeScore += this.getScoreOfNextThrows(turnScores, turnScoreIndex, 2);
+    }
+
+    return strikeScore;
+  }
+
+  private getScoreOfNextThrows(
+    turnScores: string[],
+    currentIndex: number,
+    throwsCount: number,
+  ): number {
+    let score = 0;
+    let throwsRemaining = throwsCount;
+
+    for (
+      let i = currentIndex + 1;
+      i < turnScores.length && throwsRemaining > 0;
+      i++
+    ) {
+      if (this.isStrike(turnScores[i])) {
+        score += 10;
+        throwsRemaining--;
+      } else if (this.isSpare(turnScores[i])) {
+        score += 10;
+        break;
+      } else {
+        const frameThrows = turnScores[i].split('');
+        for (const throwScore of frameThrows) {
+          if (throwsRemaining === 0) break;
+          score += throwScore === '-' ? 0 : parseInt(throwScore);
+          throwsRemaining--;
+        }
+      }
+    }
+
+    return score;
   }
 }

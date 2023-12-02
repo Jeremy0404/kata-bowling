@@ -14,4 +14,8 @@ describe('Bowling Score Calculator', () => {
   it('scores a game with all spares', () => {
     verify('5/ 5/ 5/ 5/ 5/ 5/ 5/ 5/ 5/ 5/5', 150);
   });
+
+  it('scores a perfect game', () => {
+    verify('X X X X X X X X X XXX', 300);
+  });
 });
